@@ -8,6 +8,7 @@
 | 0. | 23.9.2026 | [Úvod](slides/ans-00-intro.pdf)                  | podmínky předmětu, úvod                     |
 | 1. | 23.9.2026 | [Lineární klasifikace](slides/ans-01-linear.pdf) | lineární klasifikace, softmax, svm          |
 | 2. | 30.9.2026 | [Optimalizace](slides/ans-02-optimization.pdf)   | optimalizace, gradient, SGD, momentum, Adam |
+| 3. | 7.10.2026 | [Zpětná propagace](slides/ans-03-backprop.pdf)   | zpětná propagace, reverzní aut. derivování  |
 
 
 ## Úlohy
