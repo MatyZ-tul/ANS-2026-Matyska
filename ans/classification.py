@@ -50,6 +50,7 @@ class LinearSoftmaxModel:
         self.weight = ...
         self.bias = ...
 
+        # ENDTODO
         ########################################
 
     def train_step(

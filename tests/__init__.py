@@ -124,10 +124,10 @@ if hasattr(ans, "autograd"):
         dtype: torch.dtype = torch.float64,
         device: torch.device | None = None,
         rng_fn: Callable = torch.randn,
-    ) -> ans.autograd.Variable: # type: ignore
+    ) -> ans.autograd.Variable:  # type: ignore
         if device is None:
             device = torch.device("cpu")
         tensor = mean + std * rng_fn(shape, dtype=dtype, device=device)
         if requires_grad:
             tensor = tensor.requires_grad_()
-        return ans.autograd.Variable(tensor, name=name) # type: ignore
+        return ans.autograd.Variable(tensor, name=name)  # type: ignore
