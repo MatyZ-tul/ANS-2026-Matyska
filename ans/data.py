@@ -43,8 +43,36 @@ class BatchLoader:
         #    2.2 `yield` tuple (x, y)
         #    2.2 stop if there are no more batches
 
-        raise NotImplementedError
+        samples = len(self.dataset)
+        ind = torch.arange(samples)
 
+        if self.shuffle:
+            ind = torch.randperm(samples)
+
+        for indexx in range(0, samples, self.batch_size):
+            indexes = ind[indexx : indexx + self.batch_size]
+
+            inputs = []
+            targets = []
+            has_target = True
+
+            for idx in indexes:
+                item = self.dataset[idx]
+                
+                if isinstance(item, tuple) and len(item) > 1:
+                    inputs.append(item[0])
+                    targets.append(item[1])
+                else:
+                    has_target = False
+                    inputs.append(item[0] if isinstance(item, tuple) else item)
+
+            x = torch.stack(inputs).to(self.device)
+
+            if has_target and len(targets) > 0:
+                y = torch.tensor(targets).to(self.device)
+                yield (x, y)
+            else:
+                yield (x,)
         # ENDTODO
         ########################################
 
