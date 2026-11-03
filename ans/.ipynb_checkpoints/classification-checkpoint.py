@@ -27,7 +27,7 @@ class ClassificationModel(Protocol):
         Args:
             inputs: input data batch; shape (N, D)
             targets: vector of class indicies (integers); shape (N,)
-            learning_rate: gradient descent step size
+            learning_rate: gradient descent step sizea
         Returns:
             loss: average loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
@@ -133,7 +133,7 @@ class LinearSVMModel(LinearSoftmaxModel):
         inputs: torch.Tensor,
         targets: torch.Tensor,
         learning_rate: float = 1e-3,
-        reg: float = 1e-4,
+        reg: float = 5e-4,
     ) -> tuple[float, torch.Tensor]:
         """
         Performs one step of training of linear support vector machine (SVM) classifier:
@@ -212,10 +212,10 @@ class TwoLayerPerceptron:
         ########################################
         # TODO: implement
 
-        self.weight1 = ...
-        self.bias1 = ...
-        self.weight2 = ...
-        self.bias2 = ...
+        self.weight1 = torch.randn(in_size, hidden_size) * weight_scale
+        self.bias1 = torch.zeros(hidden_size)
+        self.weight2 = torch.randn(hidden_size, out_size) * weight_scale
+        self.bias2 = torch.zeros(out_size)
 
         # ENDTODO
         ########################################
@@ -262,8 +262,37 @@ class TwoLayerPerceptron:
         #     [ 0.0003, -0.0001,  0.0153, -0.0004]])
         #   ])
 
-        raise NotImplementedError
+        
+        r=inputs@self.weight1 + self.bias1 
+        h = torch.sigmoid(r)
+        s=h@self.weight2 + self.bias2
 
+        snExp = torch.exp(s)
+        sumSnExp = torch.sum(snExp, dim=1, keepdim=True)
+        softmaxProbs =snExp/sumSnExp
+
+        softmaxProbsSnYn = softmaxProbs[torch.arange(inputs.shape[0]), targets]
+        loss = -torch.log(softmaxProbsSnYn).mean()
+        logits = s
+        
+        batch_size = inputs.shape[0]
+        one_hot = torch.nn.functional.one_hot(targets, num_classes=s.shape[1]).float()
+
+        dlogits = (softmaxProbs - one_hot) / batch_size
+        dhidden = dlogits @ self.weight2.T
+        dprehidden = dhidden * h * (1 - h)
+
+        dweight2 = h.T @ dlogits
+        dbias2 = dlogits.sum(dim=0)
+
+        dweight1 = inputs.T @ dprehidden
+        dbias1 = dprehidden.sum(dim=0)
+        
+        with torch.no_grad():
+            self.weight1 -= learning_rate * dweight1
+            self.bias1 -= learning_rate * dbias1
+            self.weight2 -= learning_rate * dweight2
+            self.bias2 -= learning_rate * dbias2
         # ENDTODO
         ########################################
 
@@ -278,13 +307,17 @@ class TwoLayerPerceptron:
             loss: average loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
         """
-        ########################################
-        # TODO: implement
+        r=inputs@self.weight1 + self.bias1 
+        h = torch.sigmoid(r)
+        s=h@self.weight2 + self.bias2
 
-        raise NotImplementedError
+        snExp = torch.exp(s)
+        sumSnExp = torch.sum(snExp, dim=1, keepdim=True)
+        softmaxProbs =snExp/sumSnExp
 
-        # ENDTODO
-        ########################################
+        softmaxProbsSnYn = softmaxProbs[torch.arange(inputs.shape[0]), targets]
+        loss = -torch.log(softmaxProbsSnYn).mean()
+        logits = s
 
         return loss, logits
 
