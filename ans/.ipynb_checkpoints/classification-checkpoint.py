@@ -27,7 +27,7 @@ class ClassificationModel(Protocol):
         Args:
             inputs: input data batch; shape (N, D)
             targets: vector of class indicies (integers); shape (N,)
-            learning_rate: gradient descent step sizea
+            learning_rate: gradient descent step size
         Returns:
             loss: average loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
@@ -44,8 +44,11 @@ class LinearSoftmaxModel:
             weight_scale: standard deviation of the normal distribution or a bound U(-weight_scale, weight_scale)
                           of uniform distribution used to initialize the weights
         """
+        ########################################
         self.weight = torch.randn(in_size, out_size) * weight_scale
         self.bias = torch.zeros(out_size)
+        # ENDTODO
+        ########################################
 
     def to(self, device: torch.device | str) -> Self:
         self.weight = self.weight.to(device)
@@ -61,10 +64,10 @@ class LinearSoftmaxModel:
     ) -> tuple[float, torch.Tensor]:
         """
         Performs one step of training of linear softmax cross entropy classifier:
-        - s = w * x + b
-        - loss = cross_entropy(s, y)
-        - compute gradients dloss/dw, dloss/db
-        - params = params - learning_rate * dloss/dparams (SGD update)
+- s = w * x + b
+- loss = cross_entropy(s, y)
+- compute gradients dloss/dw, dloss/db
+- params = params - learning_rate * dloss/dparams (SGD update)
 
         Args:
             inputs: input data batch; shape (N, D)
@@ -74,6 +77,7 @@ class LinearSoftmaxModel:
             loss: average cross entropy loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
         """
+        ########################################
         inputs = inputs.reshape(inputs.shape[0], -1)
         logits = inputs @ self.weight + self.bias
         smax = torch.max(logits, dim=-1, keepdim=True).values
@@ -97,14 +101,16 @@ class LinearSoftmaxModel:
 
         self.weight -= learning_rate * d_weight
         self.bias -= learning_rate * d_bias
+        # ENDTODO
+        ########################################
 
         return loss, logits
 
     def val_step(self, inputs: torch.Tensor, targets: torch.Tensor) -> tuple[float, torch.Tensor]:
         """
         Performs one step of validation of linear softmax cross entropy classifier:
-        - s = w * x + b
-        - loss = cross_entropy(s, y)
+- s = w * x + b
+- loss = cross_entropy(s, y)
 
         Args:
             inputs: input data batch; shape (N, D)
@@ -113,6 +119,7 @@ class LinearSoftmaxModel:
             loss: average cross entropy loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
         """
+        ########################################
         inputs = inputs.reshape(inputs.shape[0], -1)
         logits = inputs @ self.weight + self.bias
 
@@ -123,6 +130,8 @@ class LinearSoftmaxModel:
         correct_scores = logits[torch.arange(inputs.shape[0]), targets]
         per_sample_loss = -correct_scores + logits_max.squeeze(-1) + torch.log(sum_exp_scores.squeeze(-1))
         loss = torch.mean(per_sample_loss)
+        # ENDTODO
+        ########################################
 
         return loss, logits
 
@@ -137,10 +146,10 @@ class LinearSVMModel(LinearSoftmaxModel):
     ) -> tuple[float, torch.Tensor]:
         """
         Performs one step of training of linear support vector machine (SVM) classifier:
-        - s = w * x + b
-        - loss = hinge_loss(s, y)
-        - compute gradients dloss/dw, dloss/db
-        - params = params - learning_rate * dloss/dparams (SGD update)
+- s = w * x + b
+- loss = hinge_loss(s, y)
+- compute gradients dloss/dw, dloss/db
+- params = params - learning_rate * dloss/dparams (SGD update)
 
         Args:
             inputs: input data batch; shape (N, D)
@@ -150,6 +159,7 @@ class LinearSVMModel(LinearSoftmaxModel):
             loss: average hinge loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
         """
+        ########################################
         inputs = inputs.reshape(inputs.shape[0], -1)
         logits = inputs @ self.weight + self.bias
         N, K = logits.shape
@@ -172,14 +182,16 @@ class LinearSVMModel(LinearSoftmaxModel):
 
         self.weight -= learning_rate * d_weight
         self.bias -= learning_rate * d_bias
+        # ENDTODO
+        ########################################
 
         return loss, logits
 
     def val_step(self, inputs: torch.Tensor, targets: torch.Tensor) -> tuple[float, torch.Tensor]:
         """
         Performs one step of validation of linear support vector machine (SVM) classifier:
-        - s = w * x + b
-        - loss = hinge_loss(s, y)
+- s = w * x + b
+- loss = hinge_loss(s, y)
 
         Args:
             inputs: input data batch; shape (N, D)
@@ -188,6 +200,7 @@ class LinearSVMModel(LinearSoftmaxModel):
             loss: average hinge loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
         """
+        ########################################
         inputs = inputs.reshape(inputs.shape[0], -1)
         logits = inputs @ self.weight + self.bias
         N, K = logits.shape
@@ -197,6 +210,8 @@ class LinearSVMModel(LinearSoftmaxModel):
         margins[torch.arange(N), targets] = 0.0
 
         loss = torch.mean(torch.sum(margins, dim=1))
+        # ENDTODO
+        ########################################
 
         return loss, logits
 
@@ -210,13 +225,10 @@ class TwoLayerPerceptron:
         weight_scale: float = 0.001,
     ) -> None:
         ########################################
-        # TODO: implement
-
         self.weight1 = torch.randn(in_size, hidden_size) * weight_scale
         self.bias1 = torch.zeros(hidden_size)
         self.weight2 = torch.randn(hidden_size, out_size) * weight_scale
         self.bias2 = torch.zeros(out_size)
-
         # ENDTODO
         ########################################
 
@@ -227,54 +239,18 @@ class TwoLayerPerceptron:
         learning_rate: float = 1e-3,
     ) -> tuple[float, torch.Tensor]:
         ########################################
-        # TODO: implement
-        #
-        # Some of the intermediate gradients that are to be expected for the test data used in
-        # test_two_layer_perceptron.TestTrainStep:
-        #   dlogits = torch.tensor([  # gradient w.r.t. output of the network
-        #     [ 0.0072,  0.0924, -0.0996],
-        #     [-0.0484,  0.0199,  0.0285],
-        #     [ 0.0047, -0.0258,  0.0211],
-        #     [ 0.0126,  0.0778, -0.0904],
-        #     [ 0.0333, -0.0696,  0.0362],
-        #     [ 0.0696,  0.0257, -0.0953],
-        #     [-0.0290,  0.0066,  0.0223],
-        #     [ 0.1003,  0.0059, -0.1062]
-        #   ])
-        #   dhidden = torch.tensor([  # gradient w.r.t. output of sigmoid
-        #     [ 0.1521,  0.0635, -0.1338, -0.0515],
-        #     [ 0.0342,  0.0584, -0.1164,  0.0261],
-        #     [-0.0427, -0.0237,  0.0491,  0.0094],
-        #     [ 0.1279,  0.0477, -0.1013, -0.0482],
-        #     [-0.1156, -0.0825,  0.1688,  0.0099],
-        #     [ 0.0404, -0.0429,  0.0813, -0.0646],
-        #     [ 0.0118,  0.0310, -0.0613,  0.0182],
-        #     [ 0.0070, -0.0853,  0.1665, -0.0776]
-        #   ])
-        #   dprehidden = torch.tensor([  # gradient w.r.t. output of the first linear layer (before sigmoid)
-        #     [ 0.0338,  0.0038, -0.0153, -0.0002],
-        #     [ 0.0047,  0.0002, -0.0291,  0.0004],
-        #     [-0.0092, -0.0003,  0.0007,  0.0001],
-        #     [ 0.0315,  0.0097, -0.0107, -0.0039],
-        #     [-0.0284, -0.0081,  0.0328,  0.0020],
-        #     [ 0.0091, -0.0002,  0.0203, -0.0102],
-        #     [ 0.0003,  0.0007, -0.0072,  0.0028],
-        #     [ 0.0003, -0.0001,  0.0153, -0.0004]])
-        #   ])
-
-        
-        r=inputs@self.weight1 + self.bias1 
+        r = inputs @ self.weight1 + self.bias1
         h = torch.sigmoid(r)
-        s=h@self.weight2 + self.bias2
+        s = h @ self.weight2 + self.bias2
 
         snExp = torch.exp(s)
         sumSnExp = torch.sum(snExp, dim=1, keepdim=True)
-        softmaxProbs =snExp/sumSnExp
+        softmaxProbs = snExp / sumSnExp
 
         softmaxProbsSnYn = softmaxProbs[torch.arange(inputs.shape[0]), targets]
         loss = -torch.log(softmaxProbsSnYn).mean()
         logits = s
-        
+
         batch_size = inputs.shape[0]
         one_hot = torch.nn.functional.one_hot(targets, num_classes=s.shape[1]).float()
 
@@ -287,7 +263,7 @@ class TwoLayerPerceptron:
 
         dweight1 = inputs.T @ dprehidden
         dbias1 = dprehidden.sum(dim=0)
-        
+
         with torch.no_grad():
             self.weight1 -= learning_rate * dweight1
             self.bias1 -= learning_rate * dbias1
@@ -307,17 +283,20 @@ class TwoLayerPerceptron:
             loss: average loss over the batch; float
             logits: classification scores predicted on the batch; shape (N, K)
         """
-        r=inputs@self.weight1 + self.bias1 
+        ########################################
+        r = inputs @ self.weight1 + self.bias1
         h = torch.sigmoid(r)
-        s=h@self.weight2 + self.bias2
+        s = h @ self.weight2 + self.bias2
 
         snExp = torch.exp(s)
         sumSnExp = torch.sum(snExp, dim=1, keepdim=True)
-        softmaxProbs =snExp/sumSnExp
+        softmaxProbs = snExp / sumSnExp
 
         softmaxProbsSnYn = softmaxProbs[torch.arange(inputs.shape[0]), targets]
         loss = -torch.log(softmaxProbsSnYn).mean()
         logits = s
+        # ENDTODO
+        ########################################
 
         return loss, logits
 
@@ -335,6 +314,119 @@ class TwoLayerPerceptron:
         return model
 
 
+class TwoLayerPerceptronAutograd:
+    def __init__(self, in_size: int, hidden_size: int, out_size: int, weight_scale: float = 0.001) -> None:
+        self.weight1 = ans.autograd.Variable(torch.randn(in_size, hidden_size) * weight_scale)
+        self.bias1 = ans.autograd.Variable(torch.zeros(hidden_size))
+        self.weight2 = ans.autograd.Variable(torch.randn(hidden_size, out_size) * weight_scale)
+        self.bias2 = ans.autograd.Variable(torch.zeros(out_size))
+
+    def _forward(self, inputs: torch.Tensor) -> ans.autograd.Variable:
+        x = ans.autograd.Variable(inputs.reshape(inputs.shape[0], -1))
+        hidden = (x @ self.weight1 + self.bias1).sigmoid()
+        logits = hidden @ self.weight2 + self.bias2
+        return logits
+
+    def train_step(
+        self,
+        inputs: torch.Tensor,
+        targets: torch.Tensor,
+        learning_rate: float = 1e-3,
+    ) -> tuple[float, torch.Tensor]:
+        logits = self._forward(inputs)
+        loss = softmax_cross_entropy(logits, targets)
+
+        self.weight1.grad = None
+        self.bias1.grad = None
+        self.weight2.grad = None
+        self.bias2.grad = None
+
+        loss.backprop()
+
+        if self.weight1.grad is not None:
+            self.weight1.data = self.weight1.data - learning_rate * self.weight1.grad
+        if self.bias1.grad is not None:
+            self.bias1.data = self.bias1.data - learning_rate * self.bias1.grad
+        if self.weight2.grad is not None:
+            self.weight2.data = self.weight2.data - learning_rate * self.weight2.grad
+        if self.bias2.grad is not None:
+            self.bias2.data = self.bias2.data - learning_rate * self.bias2.grad
+
+        return loss.data.item(), logits.data
+
+    def val_step(self, inputs: torch.Tensor, targets: torch.Tensor) -> tuple[float, torch.Tensor]:
+        """
+        Args:
+            inputs: input data batch; shape (N, D)
+            targets: vector of class indicies (integers); shape (N,)
+        Returns:
+            loss: average loss over the batch; float
+            logits: classification scores predicted on the batch; shape (N, K)
+        """
+        logits = self._forward(inputs)
+        loss = softmax_cross_entropy(logits, targets)
+        # ENDTODO
+        ########################################
+
+        return loss.data.item(), logits.data
+
+    def save(self, filename: str) -> None:
+        torch.save(
+            dict(weight1=self.weight1.data, bias1=self.bias1.data, weight2=self.weight2.data, bias2=self.bias2.data),
+            filename,
+        )
+
+    @classmethod
+    def load(cls, filename: str) -> Self:
+        dic = torch.load(filename, weights_only=True)
+        model = cls(*dic["weight1"].shape, dic["weight2"].shape[1])
+        model.weight1 = ans.autograd.Variable(dic["weight1"])
+        model.bias1 = ans.autograd.Variable(dic["bias1"])
+        model.weight2 = ans.autograd.Variable(dic["weight2"])
+        model.bias2 = ans.autograd.Variable(dic["bias2"])
+        return model
+
+
+class AutogradClassifier(ans.nn.Module):
+    def __init__(self, backbone: ans.nn.Module, optimizer: ans.nn.Optimizer) -> None:
+        self.backbone = backbone
+        self.optimizer = optimizer
+
+    def train_step(
+        self,
+        inputs: torch.Tensor,
+        targets: torch.Tensor,
+        learning_rate: float = 1e-3,
+    ) -> tuple[float, torch.Tensor]:
+        ########################################
+        # TODO: implement
+
+        raise NotImplementedError
+
+        # ENDTODO
+        ########################################
+
+        return loss.data.item(), logits.data
+
+    def val_step(self, inputs: torch.Tensor, targets: torch.Tensor) -> tuple[float, torch.Tensor]:
+        ########################################
+        # TODO: implement
+
+        raise NotImplementedError
+
+        # ENDTODO
+        ########################################
+
+        return loss.data.item(), logits.data
+
+    def save(self, filename: str) -> None:
+        torch.save(self, filename)  # not the correct & safe way to do this
+
+    @classmethod
+    def load(cls, filename: str) -> Self:
+        return torch.load(filename, weights_only=False)  # not the correct & safe way to do this
+
+
 def accuracy(scores: torch.Tensor, targets: torch.Tensor) -> float:
     """
     Args:
@@ -343,9 +435,47 @@ def accuracy(scores: torch.Tensor, targets: torch.Tensor) -> float:
     Returns:
         acc: average accuracy on the batch; single number (scalar), e.g. 0.364
     """
+    ########################################
     predicted = torch.argmax(scores, dim=-1)
-    correct = (predicted == targets)
+    correct = predicted == targets
     return correct.float().mean().item()
+    # ENDTODO
+    ########################################
+
+
+def softmax_cross_entropy(
+    logits: torch.Tensor | ans.autograd.Variable,
+    targets: torch.Tensor,
+) -> torch.Tensor | ans.autograd.Variable:
+    """
+    Args:
+        logits: output linear scores (logits); shape (num_samples, num_classes)
+        targets: vector of class indicies (integers); shape (num_samples,)
+    Returns:
+        loss: average loss on the batch; single number (scalar), e.g. 2.31
+    """
+    ########################################
+    n_samples = logits.shape[0] if isinstance(logits, torch.Tensor) else logits.data.shape[0]
+    row_idx = torch.arange(n_samples)
+
+    if isinstance(logits, ans.autograd.Variable):
+        exp_scores = logits.exp()
+        sum_exp = exp_scores.sum(dim=-1, keepdim=True)
+        probs = exp_scores / sum_exp
+        target_probs = probs[row_idx, targets]
+        loss = (target_probs.log() * (-1.0)).sum() / n_samples
+        return loss
+
+    # Varianta pro torch.Tensor (numerický stabilní softmax cross-entropy)
+    max_scores = torch.max(logits, dim=-1, keepdim=True).values
+    shifted = logits - max_scores
+    exp_scores = torch.exp(shifted)
+    sum_exp = torch.sum(exp_scores, dim=-1, keepdim=True)
+    log_probs = shifted - torch.log(sum_exp)
+    loss = -log_probs[row_idx, targets].mean()
+    return loss
+    # ENDTODO
+    ########################################
 
 
 def train_epoch(model: ClassificationModel, loader: ans.data.BatchLoader, **train_step_kwargs) -> Any:
@@ -358,6 +488,7 @@ def train_epoch(model: ClassificationModel, loader: ans.data.BatchLoader, **trai
     Returns:
         return whatever is needed
     """
+    ########################################
     total_loss = 0.0
     total_acc = 0.0
     num_batches = 0
@@ -366,7 +497,7 @@ def train_epoch(model: ClassificationModel, loader: ans.data.BatchLoader, **trai
         loss, logits = model.train_step(inputs, targets, **train_step_kwargs)
         acc = accuracy(logits, targets)
 
-        total_loss += loss.item()
+        total_loss += loss.item() if isinstance(loss, torch.Tensor) else float(loss)
         total_acc += acc
         num_batches += 1
 
@@ -374,6 +505,8 @@ def train_epoch(model: ClassificationModel, loader: ans.data.BatchLoader, **trai
     avg_acc = total_acc / num_batches
 
     return avg_loss, avg_acc
+    # ENDTODO
+    ########################################
 
 
 def validate(model: ClassificationModel, loader: ans.data.BatchLoader, **val_step_kwargs) -> tuple[float, float]:
@@ -387,6 +520,7 @@ def validate(model: ClassificationModel, loader: ans.data.BatchLoader, **val_ste
         mean_loss: average loss achieved on the dataset during training
         mean_acc: average accuracy achieved on the dataset during model training
     """
+    ########################################
     total_loss = 0.0
     total_correct = 0
     total_samples = 0
@@ -398,7 +532,7 @@ def validate(model: ClassificationModel, loader: ans.data.BatchLoader, **val_ste
         predicted = torch.argmax(logits, dim=-1)
         correct = (predicted == targets).sum().item()
 
-        total_loss += loss.item() * batch_size
+        total_loss += (loss.item() if isinstance(loss, torch.Tensor) else float(loss)) * batch_size
         total_correct += correct
         total_samples += batch_size
 
@@ -406,3 +540,5 @@ def validate(model: ClassificationModel, loader: ans.data.BatchLoader, **val_ste
     avg_acc = total_correct / total_samples
 
     return avg_loss, avg_acc
+    # ENDTODO
+    ########################################
